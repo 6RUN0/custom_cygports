@@ -1,0 +1,5 @@
+# $Id: perl-Geo-IP-1.42-0.cygport,v 1.2 2013/06/13 05:31:31 TalovikovBA Exp $
+# !!! Broken
+CPAN_AUTHOR=borisz
+inherit perl
+

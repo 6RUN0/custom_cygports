@@ -1,0 +1,4 @@
+category: Perl
+requires: perl
+sdesc: "Net::XWhois - Whois Client Interface for Perl5."
+ldesc: "The Net::XWhois class provides a generic client framework for doing Whois queries and parsing server response."

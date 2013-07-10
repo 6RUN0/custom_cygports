@@ -1,0 +1,5 @@
+category: Perl
+requires: perl
+sdesc: "Geo::IP::PurePerl - Look up country by IP Address"
+ldesc: "This module uses a file based database. This database simply contains IP blocks as keys, and countries as values. This database is more complete and accurate than reverse DNS lookups.
+This module can be used to automatically select the geographically closest mirror, to analyze your web server logs to determine the countries of your visiters, for credit card fraud detection, and for software export controls."

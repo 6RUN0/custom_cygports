@@ -1,0 +1,286 @@
+diff --git a/CYGWIN-PATCHES/setup.hint b/CYGWIN-PATCHES/setup.hint
+new file mode 100644
+index 0000000..59b3526
+--- /dev/null
++++ b/CYGWIN-PATCHES/setup.hint
+@@ -0,0 +1,11 @@
++# logrotate port
++@ logrotate 
++sdesc: "logrotate"
++ldesc: "Daemon to rotate, compress, remove, and mail system log files"
++# skip:
++curr: 3.8.4-0
++# prev: version
++# test: version
++category: Utils 
++requires: coreutils popt libpopt bzip2 tar
++# external-source: package
+diff --git a/INSTALL b/INSTALL
+deleted file mode 100644
+index 7e90643..0000000
+--- a/INSTALL
++++ /dev/null
+@@ -1,26 +0,0 @@
+-The simplest way to compile this package is:
+-
+-  1. `cd' to the directory containing the package's source code
+-
+-  2. Type `make' to compile the package.
+-
+-  3. Optionally, type `make test' to run any self-tests that come with
+-     the package.
+-
+-  4. Type `make install' to install the programs and any data files and
+-     documentation.
+-
+-  5. You can remove the program binaries and object files from the
+-     source code directory by typing `make clean'.
+-
+-
+-If you want to add the Access Control List (ACL) support to the program
+-use `make WITH_ACL=yes' at the point 2 and `make test WITH_ACL=yes' at 
+-the point 3.
+-
+-If you want to add the NSA Security-Enhanced Linux (SELinux) support to 
+-the program use `make WITH_SELINUX=yes' at the point 2.
+-
+-If you want to add both the ACL and SELinux supports to the program use
+-`make WITH_ACL=yes WITH_SELINUX=yes' at the point 2 and 
+-`make test WITH_ACL=yes' at the point 3.
+diff --git a/INSTALL.txt b/INSTALL.txt
+new file mode 100644
+index 0000000..7e90643
+--- /dev/null
++++ b/INSTALL.txt
+@@ -0,0 +1,26 @@
++The simplest way to compile this package is:
++
++  1. `cd' to the directory containing the package's source code
++
++  2. Type `make' to compile the package.
++
++  3. Optionally, type `make test' to run any self-tests that come with
++     the package.
++
++  4. Type `make install' to install the programs and any data files and
++     documentation.
++
++  5. You can remove the program binaries and object files from the
++     source code directory by typing `make clean'.
++
++
++If you want to add the Access Control List (ACL) support to the program
++use `make WITH_ACL=yes' at the point 2 and `make test WITH_ACL=yes' at 
++the point 3.
++
++If you want to add the NSA Security-Enhanced Linux (SELinux) support to 
++the program use `make WITH_SELINUX=yes' at the point 2.
++
++If you want to add both the ACL and SELinux supports to the program use
++`make WITH_ACL=yes WITH_SELINUX=yes' at the point 2 and 
++`make test WITH_ACL=yes' at the point 3.
+diff --git a/Makefile b/Makefile
+index 5825289..ee02d0b 100644
+--- a/Makefile
++++ b/Makefile
+@@ -5,6 +5,9 @@ CFLAGS = -Wall -D_GNU_SOURCE -D$(OS_NAME) -DVERSION=\"$(VERSION)\" $(RPM_OPT_FLA
+ PROG = logrotate
+ MAN = logrotate.8
+ MAN5 = logrotate.conf.5
++CONF = examples/logrotate.conf
++CONF_D = logrotate.d
++EXAMPLES = examples/* 
+ LOADLIBES = -lpopt
+ SVNURL= svn+ssh://svn.fedorahosted.org/svn/logrotate
+ SVNPUBURL = http://svn.fedorahosted.org/svn/logrotate
+@@ -38,14 +41,14 @@ ifeq ($(OS_NAME),HP-UX)
+     CC = gcc
+     INSTALL = cpset
+     ifeq ($(POPT_DIR),)
+-        POPT_DIR = /usr/local
++			POPT_DIR = /usr/local
+     endif
+     ifeq ($(HPLX_DIR),)
+-	HPLX_DIR = /usr/local/hplx
++			HPLX_DIR = /usr/local/hplx
+     endif
+-    LOADLIBES += -lhplx -L$(HPLX_DIR)/lib
++			LOADLIBES += -lhplx -L$(HPLX_DIR)/lib
+     ifeq ($(BASEDIR),)
+-	BASEDIR = /usr/local
++			BASEDIR = /usr/local
+     endif
+ endif
+ 
+@@ -71,7 +74,6 @@ endif
+ ifeq ($(OS_NAME),FreeBSD)
+     LOADLIBES += -L${LOCALBASE}/lib
+     CFLAGS += -I${LOCALBASE}/include
+-    PREFIX=
+ endif
+ 
+ ifeq ($(OS_NAME),NetBSD)
+@@ -81,6 +83,13 @@ ifeq ($(OS_NAME),NetBSD)
+     LOADLIBES += -L$(BASEDIR)/lib -Wl,-R,$(BASEDIR)/lib
+ endif
+ 
++# Cygwin
++ifneq (,$(findstring CYGWIN_NT, $(OS_NAME)))
++		CFLAGS = -Wall -D_GNU_SOURCE -DVERSION=\"$(VERSION)\" $(RPM_OPT_FLAGS) $(LFS)
++		INSTALL = install
++		BASEDIR = /usr
++endif
++
+ ifneq ($(POPT_DIR),)
+     CFLAGS += -I$(POPT_DIR)
+     LOADLIBES += -L$(POPT_DIR)
+@@ -90,8 +99,14 @@ ifneq ($(STATEFILE),)
+     CFLAGS += -DSTATEFILE=\"$(STATEFILE)\"
+ endif
+ 
+-BINDIR = $(BASEDIR)/sbin
+-MANDIR ?= $(BASEDIR)/man
++ifdef DESTDIR
++	PREFIX=$(DESTDIR)
++endif
++
++ETCDIR = $(PREFIX)/etc
++BINDIR = $(PREFIX)$(BASEDIR)/sbin
++MANDIR ?= $(PREFIX)$(BASEDIR)/man
++SHAREDIR = $(PREFIX)$(BASEDIR)/share/logrotate
+ 
+ #--------------------------------------------------------------------------
+ 
+@@ -121,6 +136,7 @@ $(PROG): $(OBJS)
+ clean:
+ 	rm -f $(OBJS) $(PROG) core* .depend
+ 	rm -f ./test/test.ACL
++	rm -f ./test/test.SELINUX
+ 
+ depend:
+ 	$(CPP) $(CFLAGS) -M $(SOURCES) > .depend
+@@ -138,24 +154,27 @@ test: $(TARGET)
+ 	(cd test; ./test)
+ 
+ install:
+-	[ -d $(PREFIX)$(BINDIR) ] || mkdir -p $(PREFIX)$(BINDIR)
+-	[ -d $(PREFIX)$(MANDIR) ] || mkdir -p $(PREFIX)$(MANDIR)
+-	[ -d $(PREFIX)$(MANDIR)/man8 ] || mkdir -p $(PREFIX)$(MANDIR)/man8
+-	[ -d $(PREFIX)$(MANDIR)/man5 ] || mkdir -p $(PREFIX)$(MANDIR)/man5
++	[ -d $(BINDIR) ] || mkdir -p $(BINDIR)
++	[ -d $(MANDIR) ] || mkdir -p $(MANDIR)
++	[ -d $(ETCDIR) ] || mkdir -p $(ETCDIR)
++	[ -d $(ETCDIR)/$(CONF_D) ] || mkdir -p $(ETCDIR)/$(CONF_D)
++	[ -d $(SHAREDIR) ] || mkdir -p $(SHAREDIR)
++	[ -d $(MANDIR)/man8 ] || mkdir -p $(MANDIR)/man8
++	[ -d $(MANDIR)/man5 ] || mkdir -p $(MANDIR)/man5
+ 
+ 	if [ "$(OS_NAME)" = HP-UX ]; then \
+-	$(INSTALL) $(PROG) $(PREFIX)$(BINDIR) 0755 bin bin; \
+-	$(INSTALL) $(MAN) $(PREFIX)$(MANDIR)/man`echo $(MAN) | sed "s/.*\.//"` 0644 bin bin; \
+-	$(INSTALL) $(MAN5) $(PREFIX)$(MANDIR)/man`echo $(MAN5) | sed "s/.*\.//"` 0644 bin bin; \
+-	else if [ "$(OS_NAME)" = FreeBSD ]; then \
+-	$(BSD_INSTALL_PROGRAM) $(PROG) $(BINDIR); \
+-	$(BSD_INSTALL_MAN) $(MAN) $(MANDIR)/man`echo $(MAN) | sed "s/.*\.//"`/$(MAN); \
+-	$(BSD_INSTALL_MAN) $(MAN5) $(MANDIR)/man`echo $(MAN5) | sed "s/.*\.//"`/$(MAN5); \
++	$(INSTALL) $(PROG) $(BINDIR) 0755 bin bin; \
++	$(INSTALL) $(CONF) $(ETCDIR) 0640 root bin; \
++	$(INSTALL) $(EXAMPLES) $(SHAREDIR) 0644 root bin; \
++	$(INSTALL) $(MAN) $(MANDIR)/man`echo $(MAN) | sed "s/.*\.//"` 0644 bin bin; \
++	$(INSTALL) $(MAN5) $(MANDIR)/man`echo $(MAN5) | sed "s/.*\.//"` 0644 bin bin; \
+ 	else \
+-	$(INSTALL) -m 755 $(PROG) $(PREFIX)$(BINDIR); \
+-	$(INSTALL) -m 644 $(MAN) $(PREFIX)$(MANDIR)/man`echo $(MAN) | sed "s/.*\.//"`/$(MAN); \
+-	$(INSTALL) -m 644 $(MAN5) $(PREFIX)$(MANDIR)/man`echo $(MAN5) | sed "s/.*\.//"`/$(MAN5); \
+-	fi; fi
++	$(INSTALL) -m 755 $(PROG) $(BINDIR); \
++	$(INSTALL) -m 640 $(CONF) $(ETCDIR); \
++	$(INSTALL) -m 644 $(EXAMPLES) $(SHAREDIR); \
++	$(INSTALL) -m 644 $(MAN)  $(MANDIR)/man`echo $(MAN) | sed "s/.*\.//"`/$(MAN); \
++	$(INSTALL) -m 644 $(MAN5) $(MANDIR)/man`echo $(MAN5) | sed "s/.*\.//"`/$(MAN5); \
++	fi
+ 
+ co:
+ 	co RCS/*,v
+diff --git a/examples/logrotate-default b/examples/logrotate-default
+deleted file mode 100644
+index 7da6bb7..0000000
+--- a/examples/logrotate-default
++++ /dev/null
+@@ -1,35 +0,0 @@
+-# see "man logrotate" for details
+-# rotate log files weekly
+-weekly
+-
+-# keep 4 weeks worth of backlogs
+-rotate 4
+-
+-# create new (empty) log files after rotating old ones
+-create
+-
+-# use date as a suffix of the rotated file
+-dateext
+-
+-# uncomment this if you want your log files compressed
+-#compress
+-
+-# RPM packages drop log rotation information into this directory
+-include /etc/logrotate.d
+-
+-# no packages own wtmp and btmp -- we'll rotate them here
+-/var/log/wtmp {
+-    monthly
+-    create 0664 root utmp
+-	minsize 1M
+-    rotate 1
+-}
+-
+-/var/log/btmp {
+-    missingok
+-    monthly
+-    create 0600 root utmp
+-    rotate 1
+-}
+-
+-# system-specific logs may be also be configured here.
+diff --git a/examples/logrotate.conf b/examples/logrotate.conf
+new file mode 100644
+index 0000000..7da6bb7
+--- /dev/null
++++ b/examples/logrotate.conf
+@@ -0,0 +1,35 @@
++# see "man logrotate" for details
++# rotate log files weekly
++weekly
++
++# keep 4 weeks worth of backlogs
++rotate 4
++
++# create new (empty) log files after rotating old ones
++create
++
++# use date as a suffix of the rotated file
++dateext
++
++# uncomment this if you want your log files compressed
++#compress
++
++# RPM packages drop log rotation information into this directory
++include /etc/logrotate.d
++
++# no packages own wtmp and btmp -- we'll rotate them here
++/var/log/wtmp {
++    monthly
++    create 0664 root utmp
++	minsize 1M
++    rotate 1
++}
++
++/var/log/btmp {
++    missingok
++    monthly
++    create 0600 root utmp
++    rotate 1
++}
++
++# system-specific logs may be also be configured here.

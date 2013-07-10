@@ -1,0 +1,11 @@
+# logrotate port
+@ logrotate 
+sdesc: "logrotate"
+ldesc: "Daemon to rotate, compress, remove, and mail system log files"
+# skip:
+curr: 3.8.4-0
+# prev: version
+# test: version
+category: Utils 
+requires: coreutils popt libpopt bzip2 tar
+# external-source: package

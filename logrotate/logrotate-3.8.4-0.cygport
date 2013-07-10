@@ -1,0 +1,30 @@
+#
+# Logrotate port from cygwin
+#
+
+NAME="logrotate"
+VERSION=3.8.4
+RELEASE=0
+CATEGORY="Utils"
+SUMMARY="Daemon to rotate, compress, remove, and mail system log files"
+DESCRIPTION="The logrotate utility is designed to simplify the administration \
+of log files on a system which generates a lot of log files. Logrotate allows \
+for the automatic rotation compression, removal and mailing of log files. \
+Logrotate can be set to handle a log file daily, weekly, monthly or when \
+the log file gets to a certain size."
+HOMEPAGE="https://fedorahosted.org/logrotate/"
+SRC_URI="https://fedorahosted.org/releases/l/o/${PN}/${P}.tar.gz"
+DOCS="README.Solaris README.HPUX INSTALL.txt COPYING CHANGES"
+
+DEPEND="popt gcc"
+#REQUIRES=""
+
+src_compile() {
+  cd "${S}"
+  cygmake
+}
+
+src_install() {
+  cd "${S}"
+  cyginstall
+}
