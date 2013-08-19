@@ -1,5 +1,7 @@
 category: Perl
 requires: perl
+curr: 2.52-0
+prev: 2.51-0
 sdesc: "Encode - character encodings in Perl"
 ldesc: "The Encode module provides the interface between Perl strings and the rest of the system. Perl strings are sequences of characters.
 The repertoire of characters that Perl can represent is a superset of those defined by the Unicode Consortium. On most platforms the ordinal values of a character as returned by ord(S) is the Unicode codepoint for that character. The exceptions are platforms where the legacy encoding is some variant of EBCDIC rather than a superset of ASCII; see perlebcdic.
