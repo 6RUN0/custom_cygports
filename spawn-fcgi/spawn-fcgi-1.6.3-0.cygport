@@ -1,0 +1,36 @@
+#
+# spawn-fcgi port from cygwin
+#
+
+NAME="spawn-fcgi"
+VERSION=1.6.3
+RELEASE=0
+CATEGORY="Web"
+SUMMARY="A fastcgi process spawner"
+DESCRIPTION="spawn-fcgi allows fcgi processes to be separated from web server process :
+  * Easy creation of chmoded socket.
+  * Privilege separation without needing a suid-binary,
+    or running a server as root.
+  * You can restart your web server and the FastCGI applications
+    without restarting the others.
+  * You can run them in different chroot()s.
+  * Running your FastCGI applications doesn’t depend on the web server
+    you are running, which allows for easier testing of/migration
+    to other web servers."
+HOMEPAGE="http://redmine.lighttpd.net/projects/spawn-fcgi"
+SRC_URI="http://www.lighttpd.net/download/${PN}-${PV}.tar.gz"
+DOCS="doc/run-generic doc/run-php doc/run-rails"
+DEPEND="autoconf"
+#REQUIRES=""
+
+src_compile() {
+  cd ${S}
+  autoreconf -i -v
+  cygconf
+  cygmake
+}
+
+src_install() {
+  cd ${S}
+  cyginstall
+}

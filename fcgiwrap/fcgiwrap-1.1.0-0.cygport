@@ -1,0 +1,27 @@
+#
+# Fcgiwrap port from cygwin
+#
+
+NAME="fcgiwrap"
+VERSION=1.1.0
+RELEASE=0
+CATEGORY="Web"
+SUMMARY="Simple FastCGI wrapper for CGI scripts"
+DESCRIPTION="Simple FastCGI wrapper for CGI scripts"
+HOMEPAGE="http://nginx.localdomain.pl/wiki/FcgiWrap"
+SRC_URI="https://github.com/gnosek/${PN}/archive/${PV}.tar.gz"
+DOCS="README.rst"
+DEPEND="autoconf libfcgi-devel pkg-config"
+#REQUIRES=""
+
+src_compile() {
+  cd ${S}
+  autoreconf -i -v
+  cygconf --sbindir="/sbin"
+  cygmake
+}
+
+src_install() {
+  cd ${S}
+  cyginstall
+}

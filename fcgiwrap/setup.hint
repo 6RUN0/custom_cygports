@@ -1,0 +1,10 @@
+# fcgiwrap port
+@ fcgiwrap
+sdesc: "fcgiwrap"
+ldesc: "Simple FastCGI wrapper for CGI scripts"
+# skip:
+curr: 1.1.0-0
+# prev: version
+# test: version
+category: Web
+requires: fcgi spawn-fcgi

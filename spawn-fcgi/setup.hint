@@ -1,0 +1,10 @@
+# spawn-fcgi port
+@ spawn-fcgi
+sdesc: "spawn-fcgi"
+ldesc: "A fastcgi process spawner"
+# skip:
+curr: 1.6.4-0
+# prev: version
+# test: version
+category: Web
+#requires:
