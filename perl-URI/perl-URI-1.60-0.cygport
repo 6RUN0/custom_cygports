@@ -1,4 +1,2 @@
-# $Id: perl-URI-1.60-0.cygport,v 1.1 2013/06/13 05:30:29 TalovikovBA Exp TalovikovBA $
 CPAN_AUTHOR=gaas
 inherit perl
-

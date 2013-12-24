@@ -1,4 +1,2 @@
-# $Id: perl-Net-XWhois-0.90-0.cygport,v 1.1 2013/06/13 04:33:41 TalovikovBA Exp TalovikovBA $
 CPAN_AUTHOR=vipul
 inherit perl
-

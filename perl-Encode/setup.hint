@@ -1,6 +1,6 @@
 category: Perl
 requires: perl
-curr: 2.52-0
+curr: 2.62-0
 prev: 2.51-0
 sdesc: "Encode - character encodings in Perl"
 ldesc: "The Encode module provides the interface between Perl strings and the rest of the system. Perl strings are sequences of characters.
